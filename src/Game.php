@@ -7,68 +7,60 @@ namespace Kpicaza\Sudoku;
 class Game
 {
 
-    private readonly array $solution;
+    private readonly Solution $solutionGrid;
+    private readonly Grid $initialGrid;
     private string $solutionState;
 
-    public function __construct($solution)
+    public function __construct($solutionGrid, $initialGrid = null)
     {
-        $result = [];
-        while ($row = fgetcsv($solution)) {
-            $result[] = array_filter($row);
+        try {
+            $grid = new Grid($solutionGrid);
+        } catch (\InvalidArgumentException) {
+            $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
+            return;
+        }
+        try {
+            $this->solutionGrid = new Solution($grid);
+        } catch (\InvalidArgumentException) {
+            $this->solutionState = 'The proposed solution is incorrect.';
+            return;
         }
 
-        $this->complyRules($result);
+        $this->initialGrid = new Grid($initialGrid);
+
+        $this->complyRules();
     }
 
-    public function toString(): string
+    public function solutionStatus(): string
     {
         return $this->solutionState;
     }
 
-    private function complyRules(array $solution): void
+    private function complyRules(): void
     {
-        $this->solution = $solution;
-        $rowsCount = count($solution);
-        $squareNumber = sqrt($rowsCount);
-        $isSquare = $squareNumber === floor($squareNumber);
-        if (false === $isSquare) {
+        $solution = $this->solutionGrid->grid->horizontalGrid();
+        $rowsCount = $this->solutionGrid->grid->size;
+
+        if (false === $this->initialGrid->canBeSolvedWith($this->solutionGrid->grid)) {
+            $this->solutionState = 'The proposed solution is incorrect.';
+            return;
+        }
+
+        try {
+            $this->validateGrid($solution, $rowsCount);
+            $this->validateGrid($this->solutionGrid->grid->verticalGrid(), $rowsCount);
+            $this->validateGrid($this->solutionGrid->grid->squareGrid(), $rowsCount);
+        } catch (\Exception) {
             $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
             return;
         }
-        foreach ($solution as $row) {
-            $rowCount = count($row);
-            if ($rowsCount !== $rowCount) {
-                $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
-                return;
-            }
-            $validRow = $this->isValidRow($row, $rowCount);
-            if (false === $validRow) {
-                $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
-                return;
-            }
+
+        if (0 === $this->initialGrid->size) {
+            $this->solutionState = 'The input complies with Sudoku\'s rules.';
+            return;
         }
 
-        $verticalSolution = $this->rotatedSolution();
-        foreach ($verticalSolution as $verticalRow) {
-            $rowCount = count($verticalRow);
-            $validRow = $this->isValidRow($verticalRow, $rowCount);
-            if (false === $validRow) {
-                $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
-                return;
-            }
-        }
-
-        $squareSolution = $this->squareSolution((int)$squareNumber, $rowsCount);
-        foreach ($squareSolution as $squareRow) {
-            $rowCount = count($squareRow);
-            $validRow = $this->isValidRow($squareRow, $rowCount);
-            if (false === $validRow) {
-                $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
-                return;
-            }
-        }
-
-        $this->solutionState = 'The input complies with Sudoku\'s rules.';
+        $this->solutionState = 'The proposed solution is correct.';
     }
 
     private function isValidRow(mixed $row, int $rowCount): bool
@@ -89,42 +81,13 @@ class Game
         return false;
     }
 
-    private function rotatedSolution(): array
+    private function validateGrid(array $grid, int $rowsCount): void
     {
-        $matrix = $this->solution;
-        array_unshift($matrix, null);
-        $matrix = call_user_func_array('array_map', $matrix);
-
-        return $matrix;
-    }
-
-    private function squareSolution(int $squareSize, int $rowSize): array
-    {
-        $tmpMatrix = $this->solution;
-        $matrix = [];
-        $index = 0;
-        $initialIndex = 0;
-        foreach ($tmpMatrix as $row) {
-            while ($partialRow = array_splice($row, 0, $squareSize)) {
-                dump('Initial', $initialIndex);
-                dump('index', $index);
-                dump('value', $partialRow);
-
-                $matrix[$index] = array_merge($matrix[$index]  ?? [], $partialRow);
-
-                if (count($matrix[$index]) === $rowSize) {
-                    $initialIndex ++;
-                }
-
-                $index++;
-
-                if (sqrt($index) === floor($squareSize) || $index === $squareSize) {
-                    $index = $initialIndex;
-                }
-
+        foreach ($grid as $key => $row) {
+            $validRow = $this->isValidRow($row, $rowsCount);
+            if (false === $validRow) {
+                throw new \Exception('Row is invalid.');
             }
         }
-
-        return $matrix;
     }
 }
