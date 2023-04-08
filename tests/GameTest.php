@@ -6,8 +6,9 @@ namespace Test\Kpicaza\Sudoku;
 
 use Kpicaza\Sudoku\Game;
 use Kpicaza\Sudoku\Grid;
+use PHPUnit\Framework\TestCase;
 
-class GameTest extends \PHPUnit\Framework\TestCase
+final class GameTest extends TestCase
 {
     public function testCheckForIncompatibleSudokuSolution(): void
     {

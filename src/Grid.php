@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku;
 
-class Grid
+final class Grid
 {
-
     public readonly array $matrix;
     public readonly array $verticalMatrix;
     public readonly array $blockMatrix;
@@ -16,7 +15,6 @@ class Grid
 
     public function __construct(array $matrix)
     {
-        $this->isValid($matrix);
         $this->size = count($matrix);
         $this->blockSize = (int)sqrt($this->size);
         $this->numbers = range(1, $this->size);
@@ -38,22 +36,6 @@ class Grid
         return new self($matrix);
     }
 
-    private function isValid(array $solution): void
-    {
-        $rowsCount = count($solution);
-        $squareNumber = sqrt($rowsCount);
-        $isSquare = $squareNumber === floor($squareNumber);
-        if (false === $isSquare) {
-            throw new \InvalidArgumentException('Invalid grid.');
-        }
-        foreach ($solution as $row) {
-            $rowCount = count($row);
-            if ($rowsCount !== $rowCount) {
-                throw new \InvalidArgumentException('Invalid grid.');
-            }
-        }
-    }
-
     private function verticalGrid(): array
     {
         $matrix = $this->matrix;
@@ -61,10 +43,8 @@ class Grid
             return [];
         }
         array_unshift($matrix, null);
-        $matrix = call_user_func_array('array_map', $matrix);
 
-        return $matrix;
-
+        return call_user_func_array('array_map', $matrix);
     }
 
     private function blockGrid(): array
@@ -86,16 +66,10 @@ class Grid
                 if ($index % $this->blockSize === 0) {
                     $index = $initialIndex;
                 }
-
             }
         }
 
         return $matrix;
-    }
-
-    public function horizontalGrid(): array
-    {
-        return $this->matrix;
     }
 
     public function canBeSolvedWith(Grid $solutionGrid): bool
@@ -114,20 +88,11 @@ class Grid
         return true;
     }
 
-    public function isFullFilled(): bool
-    {
-        return ($this->size * $this->size) === count(
-            array_merge(
-                ...array_map(fn($matrix) => array_filter($matrix,  fn($item) => is_numeric($item)), $this->matrix)
-            )
-        );
-    }
-
     public function nextMove(): ?Move
     {
-        $foo = $this->nextMoveByTriangulation();
+        $nextMove = $this->nextMoveByTriangulation();
 
-        return $foo;
+        return $nextMove;
     }
 
     private function nextMoveByTriangulation(): ?Move
@@ -148,7 +113,7 @@ class Grid
                     $lockedNumbersInAHorizontal[] = $this->matrix[$i][$col];
                 }
 
-                $lockedNumbers = array_unique(array_merge($lockedNumbersInABlock, $lockedNumbersInVertical,$lockedNumbersInAHorizontal));
+                $lockedNumbers = array_unique(array_merge($lockedNumbersInABlock, $lockedNumbersInVertical, $lockedNumbersInAHorizontal));
 
                 $possibleNumbers = array_diff($this->numbers, $lockedNumbers);
 
@@ -166,7 +131,7 @@ class Grid
         $csv = '';
 
         foreach ($this->matrix as $key => $row) {
-            $csv .= implode(',', $row) . ',' . ($key +1 === $this->size ? '' : PHP_EOL);
+            $csv .= implode(',', $row) . ',' . ($key + 1 === $this->size ? '' : PHP_EOL);
         }
 
         return $csv;

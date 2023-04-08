@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku;
 
-class Game
-{
+use Exception;
+use InvalidArgumentException;
 
+final class Game
+{
     public readonly ?Solution $solutionGrid;
     private readonly Grid $initialGrid;
     private string $solutionState;
@@ -14,9 +16,7 @@ class Game
     public function __construct(?Solution $solutionGrid, ?Grid $initialGrid = null, string $message = '')
     {
         $this->solutionGrid = $solutionGrid;
-
         $this->initialGrid = $initialGrid ?? new Grid([]);
-
         $this->solutionState = $message;
 
         $this->complyRules();
@@ -26,7 +26,7 @@ class Game
     {
         try {
             $solution = new Solution($solutionGrid);
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             return new self(null, $initialGrid, 'The proposed solution is incorrect.');
         }
 
@@ -36,8 +36,8 @@ class Game
     public static function fromInitialGrid(Grid $initialGrid): self
     {
         try {
-            $solution = Solution::from($initialGrid);
-        } catch (\InvalidArgumentException) {
+            $solution = Solution::fromInitial($initialGrid);
+        } catch (InvalidArgumentException) {
             return new self(null, $initialGrid, 'The Sudoku is not solvable.');
         }
 
@@ -55,7 +55,7 @@ class Game
             return;
         }
 
-        $solution = $this->solutionGrid->grid->horizontalGrid();
+        $solution = $this->solutionGrid->grid;
         $rowsCount = $this->solutionGrid->grid->size;
 
         if (false === $this->initialGrid->canBeSolvedWith($this->solutionGrid->grid)) {
@@ -64,10 +64,10 @@ class Game
         }
 
         try {
-            $this->validateGrid($solution, $rowsCount);
-            $this->validateGrid($this->solutionGrid->grid->verticalMatrix, $rowsCount);
-            $this->validateGrid($this->solutionGrid->grid->blockMatrix, $rowsCount);
-        } catch (\Exception) {
+            $this->validateGrid($solution->matrix, $rowsCount);
+            $this->validateGrid($solution->verticalMatrix, $rowsCount);
+            $this->validateGrid($solution->blockMatrix, $rowsCount);
+        } catch (Exception) {
             $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
             return;
         }
@@ -91,11 +91,7 @@ class Game
             unset($row[$index]);
         }
 
-        if (0 === count($row)) {
-            return true;
-        }
-
-        return false;
+        return 0 === count($row);
     }
 
     private function validateGrid(array $grid, int $rowsCount): void
@@ -103,7 +99,7 @@ class Game
         foreach ($grid as $row) {
             $validRow = $this->isValidRow($row, $rowsCount);
             if (false === $validRow) {
-                throw new \Exception('Row is invalid.');
+                throw new Exception('Row is invalid.');
             }
         }
     }
