@@ -12,4 +12,16 @@ class Solution
           throw new \InvalidArgumentException('Solution grid is not full filled.');
       }
   }
+
+    public static function from(Grid $initialGrid): self
+    {
+        $solvedGrid = $initialGrid->matrix;
+
+        while ($nextMove = $initialGrid->nextMove()) {
+            $solvedGrid[$nextMove->row][$nextMove->col] = (string)$nextMove->value;
+            $initialGrid = new Grid($solvedGrid);
+        }
+
+        return new self(new Grid($solvedGrid));
+    }
 }

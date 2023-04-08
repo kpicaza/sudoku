@@ -1,4 +1,5 @@
 .idea
+.run
 .php-version
 .phpunit.cache
 vendor
