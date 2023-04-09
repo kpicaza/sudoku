@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku;
 
-final class Grid
+final readonly class Grid
 {
-    public readonly array $matrix;
-    public readonly array $verticalMatrix;
-    public readonly array $blockMatrix;
-    public readonly int $size;
-    public readonly int $blockSize;
-    private readonly array $numbers;
+    public array $matrix;
+    public array $verticalMatrix;
+    public array $blockMatrix;
+    public int $size;
+    public int $blockSize;
+    private array $numbers;
 
     public function __construct(array $matrix)
     {
@@ -36,6 +36,42 @@ final class Grid
         return new self($matrix);
     }
 
+    public static function fillEmptyGrid(int $size, int $blockSize): self
+    {
+        $matrix = [];
+        for ($row = 0; $row < $size; $row++) {
+            $matrix[$row] = array_fill(0, $size, ' ');
+        }
+
+        $numbers = range(1, $size);
+        shuffle($numbers);
+
+        for ($i = 0;$i < $blockSize;$i++) {
+            $matrix[$i] = $numbers;
+            $tmpNumbers = array_splice($numbers, 0, $blockSize);
+            $numbers = array_merge($numbers, $tmpNumbers);
+        }
+
+        return new self($matrix);
+    }
+
+    public static function addGaps(array $matrix, int $blankSpaces, int $size): self
+    {
+        $usedIndexes = [];
+        while (0 < $blankSpaces) {
+            do {
+                $rowIndex = rand(0, $size -1);
+                $colIndex = rand(0, $size -1);
+            } while(in_array([$rowIndex, $colIndex], $usedIndexes));
+
+            $matrix[$rowIndex][$colIndex] = ' ';
+            $usedIndexes[] = [$rowIndex, $colIndex];
+            $blankSpaces--;
+        }
+
+        return new self($matrix);
+    }
+
     private function verticalGrid(): array
     {
         $matrix = $this->matrix;
@@ -49,23 +85,11 @@ final class Grid
 
     private function blockGrid(): array
     {
-        $tmpMatrix = $this->matrix;
         $matrix = [];
-        $index = 0;
-        $initialIndex = 0;
-        foreach ($tmpMatrix as $row) {
-            while ($partialRow = array_splice($row, 0, $this->blockSize)) {
-                $matrix[$index] = array_merge($matrix[$index]  ?? [], $partialRow);
-
-                if (count($matrix[$index]) === $this->size) {
-                    $initialIndex++;
-                }
-
-                $index++;
-
-                if ($index % $this->blockSize === 0) {
-                    $index = $initialIndex;
-                }
+        for ($row = 0; $row < $this->size; $row++) {
+            for ($col = 0; $col < $this->size; $col++) {
+                $index = $this->getBlockIndex($row, $col);
+                $matrix[$index][] = $this->matrix[$row][$col];
             }
         }
 
@@ -88,14 +112,16 @@ final class Grid
         return true;
     }
 
-    public function nextMove(): ?Move
+    public function move(Move $move): self
     {
-        $nextMove = $this->nextMoveByTriangulation();
+        $matrix = $this->matrix;
 
-        return $nextMove;
+        $matrix[$move->row][$move->col] = $move->value;
+
+        return new self($matrix);
     }
 
-    private function nextMoveByTriangulation(): ?Move
+    public function tryNextMoveByTriangulation(): ?Move
     {
         foreach ($this->matrix as $row => $cols) {
             $lockedNumbersInVertical = array_filter($this->matrix[$row], fn($verticalNumber) => is_numeric($verticalNumber));
@@ -103,7 +129,7 @@ final class Grid
                 if (is_numeric($number)) {
                     continue;
                 }
-                $block = (int)(floor($row / $this->blockSize) * $this->blockSize + floor($col / $this->blockSize));
+                $block =$this->getBlockIndex($row, $col);
                 $lockedNumbersInABlock = array_filter($this->blockMatrix[$block], fn($blockNumber) => is_numeric($blockNumber));
                 $lockedNumbersInAHorizontal = [];
                 for ($i = 0; $i < $this->size; $i++) {
@@ -124,6 +150,31 @@ final class Grid
         }
 
         return null;
+    }
+
+    public function tryNextMove(Move $move): ?Move
+    {
+        if (in_array($move->value, $this->matrix[$move->row])) {
+            return null;
+        }
+
+        if (in_array($move->value, $this->verticalMatrix[$move->col])) {
+            return null;
+        }
+
+        if (in_array($move->value, $this->blockMatrix[$move->block])) {
+            return null;
+        }
+
+        return $move;
+    }
+
+    public function getBlockIndex(int $row, int $col): int
+    {
+         return (int)(
+             floor($row / $this->blockSize) * $this->blockSize
+             + floor($col / $this->blockSize)
+         );
     }
 
     public function toCsvString(): string

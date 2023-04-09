@@ -10,7 +10,7 @@ use InvalidArgumentException;
 final class Game
 {
     public readonly ?Solution $solutionGrid;
-    private readonly Grid $initialGrid;
+    public readonly Grid $initialGrid;
     private string $solutionState;
 
     public function __construct(?Solution $solutionGrid, ?Grid $initialGrid = null, string $message = '')
@@ -42,6 +42,16 @@ final class Game
         }
 
         return new Game($solution, $initialGrid);
+    }
+
+    public static function withBlockSizeAndBlankSpaces(int $blockSize, int $blankSpaces): self
+    {
+        $size = $blockSize * $blockSize;
+        $grid = Grid::fillEmptyGrid($size, $blockSize);
+        $solution = Solution::fromInitial($grid);
+        $initialGrid = Grid::addGaps($grid->matrix, $blankSpaces, $size);
+
+        return new self($solution, $initialGrid);
     }
 
     public function solutionStatus(): string

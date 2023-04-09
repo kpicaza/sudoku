@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Test\Kpicaza\Sudoku;
 
+use Generator;
 use Kpicaza\Sudoku\Game;
 use Kpicaza\Sudoku\Grid;
 use PHPUnit\Framework\TestCase;
@@ -69,7 +70,17 @@ final class GameTest extends TestCase
         $this->assertSame('The Sudoku is not solvable.', $game->solutionStatus());
     }
 
-    public static function getInvalidSolutionCsv(): \Generator
+    /** @dataProvider getDimensionsAndBlankSpaces */
+    public function testProduceASolvableInitialGridWith(int $dimensions, int $blankSpaces): void
+    {
+        $game = Game::withBlockSizeAndBlankSpaces($dimensions, $blankSpaces);
+
+        $this->assertSame('The proposed solution is correct.', $game->solutionStatus());
+        $anotherGame = Game::fromInitialGrid(new Grid($game->initialGrid->matrix));
+        $this->assertSame('The proposed solution is correct.', $anotherGame->solutionStatus());
+    }
+
+    public static function getInvalidSolutionCsv(): Generator
     {
         yield 'Example 1' => [
             'tests/examples/9x9-initial-grid-no-valid-1.csv'
@@ -82,7 +93,7 @@ final class GameTest extends TestCase
         ];
     }
 
-    public static function getVInitialAndSolutionCsv(): \Generator
+    public static function getVInitialAndSolutionCsv(): Generator
     {
         yield 'Example 1: 4x4' => [
             'tests/examples/4x4-initial-grid.csv',
@@ -93,5 +104,13 @@ final class GameTest extends TestCase
             'tests/examples/9x9-initial-grid.csv',
             'tests/examples/9x9-initial-grid-valid.csv',
         ];
+    }
+
+    public static function getDimensionsAndBlankSpaces(): Generator
+    {
+        yield 'Block size: 2, White spaces: 11' => [2, 11];
+        yield 'Block size: 3, White spaces: 51' => [3, 51];
+        yield 'Block size: 3, White spaces: 61' => [3, 61];
+        yield 'Block size: 3, White spaces: 71' => [3, 71];
     }
 }
