@@ -3,4 +3,5 @@
 .php-version
 .phpunit.cache
 .phpunit.result.cache
+coverage
 vendor

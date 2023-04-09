@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kpicaza\Sudoku;
+namespace Kpicaza\Sudoku\Domain\Model;
 
 /**
  * @psalm-type Matrix array<int, array<int, string>>
@@ -29,18 +29,6 @@ final readonly class Grid
         $this->matrix = $matrix;
         $this->verticalMatrix = $this->verticalGrid();
         $this->blockMatrix = $this->blockGrid();
-    }
-
-    /** @param resource $initialGridResource */
-    public static function fromCsvResource($initialGridResource): self
-    {
-        $matrix = [];
-        while ($row = fgetcsv($initialGridResource)) {
-            array_pop($row);
-            $matrix[] = $row;
-        }
-
-        return new self($matrix);
     }
 
     public static function fillEmptyGrid(int $size, int $blockSize): self
@@ -191,16 +179,5 @@ final readonly class Grid
             floor($row / $this->blockSize) * $this->blockSize
             + floor($col / $this->blockSize)
         );
-    }
-
-    public function toCsvString(): string
-    {
-        $csv = '';
-
-        foreach ($this->matrix as $key => $row) {
-            $csv .= implode(',', $row) . ',' . ($key + 1 === $this->size ? '' : PHP_EOL);
-        }
-
-        return $csv;
     }
 }
