@@ -9,7 +9,8 @@
          beStrictAboutOutputDuringTests="false"
          failOnRisky="true"
          failOnWarning="true"
-        colors="true">
+         printerClass="NunoMaduro\Collision\Adapters\Phpunit\Printer"
+         colors="true">
     <testsuites>
         <testsuite name="default">
             <directory>tests</directory>
