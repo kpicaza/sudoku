@@ -68,8 +68,8 @@ final readonly class Grid
         $usedIndexes = [];
         while (0 < $blankSpaces) {
             do {
-                $rowIndex = rand(0, $size - 1);
-                $colIndex = rand(0, $size - 1);
+                $rowIndex = random_int(0, $size - 1);
+                $colIndex = random_int(0, $size - 1);
             } while (in_array([$rowIndex, $colIndex], $usedIndexes, true));
 
             $matrix[$rowIndex][$colIndex] = ' ';
