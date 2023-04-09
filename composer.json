@@ -17,6 +17,20 @@
         "phpunit/phpunit": "^9.0",
         "symfony/var-dumper": "^6.2",
         "nunomaduro/collision": "^6.0",
-        "vimeo/psalm": "^5.9"
+        "vimeo/psalm": "^5.9",
+        "phpro/grumphp": "^1.15"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpro/grumphp": true
+        }
+    },
+    "scripts": {
+        "check-all": [
+            "@test",
+            "@static"
+        ],
+        "test": "phpunit",
+        "static": "psalm"
     }
 }
