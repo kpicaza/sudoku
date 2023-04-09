@@ -104,6 +104,9 @@ final class Game
         return 0 === count($row);
     }
 
+    /**
+     * @param array<int, array<int, string>> $grid
+     */
     private function validateGrid(array $grid, int $rowsCount): void
     {
         foreach ($grid as $row) {

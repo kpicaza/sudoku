@@ -39,6 +39,10 @@ final readonly class Solution
         return new self($grid);
     }
 
+    /**
+     * @param array<int, array<int, string>> $matrix
+     * @param array<int> $numbers
+     */
     public static function fillGrid(int $size, array $matrix, array $numbers): ?Grid
     {
         $grid = new Grid($matrix);

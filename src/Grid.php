@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku;
 
+/**
+ * @psalm-type Matrix array<int, array<int, string>>
+ */
 final readonly class Grid
 {
+    /** @var Matrix */
     public array $matrix;
+    /** @var Matrix */
     public array $verticalMatrix;
+    /** @var Matrix */
     public array $blockMatrix;
     public int $size;
     public int $blockSize;
+    /** @var array<int>  */
     private array $numbers;
 
+    /** @param Matrix $matrix */
     public function __construct(array $matrix)
     {
         $this->size = count($matrix);
@@ -23,14 +31,13 @@ final readonly class Grid
         $this->blockMatrix = $this->blockGrid();
     }
 
+    /** @param resource $initialGridResource */
     public static function fromCsvResource($initialGridResource): self
     {
         $matrix = [];
-        if (null !== $initialGridResource) {
-            while ($row = fgetcsv($initialGridResource)) {
-                array_pop($row);
-                $matrix[] = $row;
-            }
+        while ($row = fgetcsv($initialGridResource)) {
+            array_pop($row);
+            $matrix[] = $row;
         }
 
         return new self($matrix);
@@ -43,7 +50,7 @@ final readonly class Grid
             $matrix[$row] = array_fill(0, $size, ' ');
         }
 
-        $numbers = range(1, $size);
+        $numbers = array_map(static fn(int $number) => (string)$number, range(1, $size));
         shuffle($numbers);
 
         for ($i = 0;$i < $blockSize;$i++) {
@@ -55,6 +62,7 @@ final readonly class Grid
         return new self($matrix);
     }
 
+    /** @param Matrix $matrix */
     public static function addGaps(array $matrix, int $blankSpaces, int $size): self
     {
         $usedIndexes = [];
@@ -72,17 +80,20 @@ final readonly class Grid
         return new self($matrix);
     }
 
+    /** @return Matrix */
     private function verticalGrid(): array
     {
-        $matrix = $this->matrix;
-        if (0 === count($this->matrix)) {
-            return [];
+        $matrix = [];
+        for ($row = 0; $row < $this->size; $row++) {
+            for ($col = 0; $col < $this->size; $col++) {
+                $matrix[$col][] = $this->matrix[$row][$col];
+            }
         }
-        array_unshift($matrix, null);
 
-        return call_user_func_array('array_map', $matrix);
+        return $matrix;
     }
 
+    /** @return Matrix */
     private function blockGrid(): array
     {
         $matrix = [];
@@ -116,7 +127,7 @@ final readonly class Grid
     {
         $matrix = $this->matrix;
 
-        $matrix[$move->row][$move->col] = $move->value;
+        $matrix[$move->row][$move->col] = (string)$move->value;
 
         return new self($matrix);
     }
@@ -130,7 +141,7 @@ final readonly class Grid
                     continue;
                 }
                 $block =$this->getBlockIndex($row, $col);
-                $lockedNumbersInABlock = array_filter($this->blockMatrix[$block], fn($blockNumber) => is_numeric($blockNumber));
+                $lockedNumbersInABlock = array_filter($this->blockMatrix[$block], fn(string $blockNumber) => is_numeric($blockNumber));
                 $lockedNumbersInAHorizontal = [];
                 for ($i = 0; $i < $this->size; $i++) {
                     if (false === is_numeric($this->matrix[$i][$col])) {
