@@ -78,7 +78,7 @@ final class Game
             $this->validateGrid($solution->verticalMatrix, $rowsCount);
             $this->validateGrid($solution->blockMatrix, $rowsCount);
         } catch (Exception) {
-            $this->solutionState =  'The input doesn\'t comply with Sudoku\'s rules.';
+            $this->solutionState = 'The input doesn\'t comply with Sudoku\'s rules.';
             return;
         }
 
@@ -93,7 +93,7 @@ final class Game
     private function isValidRow(array $row, int $rowCount): bool
     {
         for ($i = 1; $i <= $rowCount; $i++) {
-            $index = array_search($i, $row);
+            $index = array_search((string)$i, $row, true);
             if (false === $index) {
                 return false;
             }

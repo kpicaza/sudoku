@@ -18,7 +18,8 @@
         "symfony/var-dumper": "^6.2",
         "nunomaduro/collision": "^6.0",
         "vimeo/psalm": "^5.9",
-        "phpro/grumphp": "^1.15"
+        "phpro/grumphp": "^1.15",
+        "symplify/easy-coding-standard": "^11.3"
     },
     "config": {
         "allow-plugins": {
@@ -27,9 +28,12 @@
     },
     "scripts": {
         "check-all": [
+            "@cs-check",
             "@test",
             "@static"
         ],
+        "cs-check": "ecs check src tests",
+        "cs-fix": "ecs check src tests --fix",
         "test": "phpunit",
         "static": "psalm"
     }

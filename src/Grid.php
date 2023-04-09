@@ -50,7 +50,7 @@ final readonly class Grid
             $matrix[$row] = array_fill(0, $size, ' ');
         }
 
-        $numbers = array_map(static fn(int $number) => (string)$number, range(1, $size));
+        $numbers = array_map(static fn (int $number) => (string)$number, range(1, $size));
         shuffle($numbers);
 
         for ($i = 0;$i < $blockSize;$i++) {
@@ -68,9 +68,9 @@ final readonly class Grid
         $usedIndexes = [];
         while (0 < $blankSpaces) {
             do {
-                $rowIndex = rand(0, $size -1);
-                $colIndex = rand(0, $size -1);
-            } while(in_array([$rowIndex, $colIndex], $usedIndexes));
+                $rowIndex = rand(0, $size - 1);
+                $colIndex = rand(0, $size - 1);
+            } while (in_array([$rowIndex, $colIndex], $usedIndexes, true));
 
             $matrix[$rowIndex][$colIndex] = ' ';
             $usedIndexes[] = [$rowIndex, $colIndex];
@@ -109,7 +109,7 @@ final readonly class Grid
 
     public function canBeSolvedWith(Grid $solutionGrid): bool
     {
-        $grid =  array_map(fn($matrix) => array_filter($matrix,  fn($item) => is_numeric($item)), $this->matrix);
+        $grid = array_map(fn ($matrix) => array_filter($matrix, fn ($item) => is_numeric($item)), $this->matrix);
         $solutionGridMatrix = $solutionGrid->matrix;
 
         foreach ($grid as $key => $line) {
@@ -135,22 +135,18 @@ final readonly class Grid
     public function tryNextMoveByTriangulation(): ?Move
     {
         foreach ($this->matrix as $row => $cols) {
-            $lockedNumbersInVertical = array_filter($this->matrix[$row], fn($verticalNumber) => is_numeric($verticalNumber));
+            $lockedNumbersInVertical = $this->getRowNumbers($this->matrix[$row]);
             foreach ($cols as $col => $number) {
                 if (is_numeric($number)) {
                     continue;
                 }
-                $block =$this->getBlockIndex($row, $col);
-                $lockedNumbersInABlock = array_filter($this->blockMatrix[$block], fn(string $blockNumber) => is_numeric($blockNumber));
-                $lockedNumbersInAHorizontal = [];
-                for ($i = 0; $i < $this->size; $i++) {
-                    if (false === is_numeric($this->matrix[$i][$col])) {
-                        continue;
-                    }
-                    $lockedNumbersInAHorizontal[] = $this->matrix[$i][$col];
-                }
+                $block = $this->getBlockIndex($row, $col);
+                $lockedNumbersInABlock = $this->getRowNumbers($this->blockMatrix[$block]);
+                $lockedNumbersInAHorizontal = $this->getRowNumbers($this->verticalMatrix[$col]);
 
-                $lockedNumbers = array_unique(array_merge($lockedNumbersInABlock, $lockedNumbersInVertical, $lockedNumbersInAHorizontal));
+                $lockedNumbers = array_unique(
+                    array_merge($lockedNumbersInABlock, $lockedNumbersInVertical, $lockedNumbersInAHorizontal)
+                );
 
                 $possibleNumbers = array_diff($this->numbers, $lockedNumbers);
 
@@ -165,27 +161,36 @@ final readonly class Grid
 
     public function tryNextMove(Move $move): ?Move
     {
-        if (in_array($move->value, $this->matrix[$move->row])) {
+        if (in_array((string)$move->value, $this->matrix[$move->row], true)) {
             return null;
         }
 
-        if (in_array($move->value, $this->verticalMatrix[$move->col])) {
+        if (in_array((string)$move->value, $this->verticalMatrix[$move->col], true)) {
             return null;
         }
 
-        if (in_array($move->value, $this->blockMatrix[$move->block])) {
+        if (in_array((string)$move->value, $this->blockMatrix[$move->block], true)) {
             return null;
         }
 
         return $move;
     }
 
+    /**
+     * @param array<int, string> $row
+     * @return array<int, string>
+     */
+    private function getRowNumbers(array $row): array
+    {
+        return array_filter($row, static fn ($number) => is_numeric($number));
+    }
+
     public function getBlockIndex(int $row, int $col): int
     {
-         return (int)(
-             floor($row / $this->blockSize) * $this->blockSize
-             + floor($col / $this->blockSize)
-         );
+        return (int)(
+            floor($row / $this->blockSize) * $this->blockSize
+            + floor($col / $this->blockSize)
+        );
     }
 
     public function toCsvString(): string
