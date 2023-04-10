@@ -49,7 +49,7 @@ final class Game
         $size = $blockSize * $blockSize;
         $grid = Grid::fillEmptyGrid($size, $blockSize);
         $solution = Solution::fromInitial($grid);
-        $initialGrid = Grid::addGaps($grid->matrix, $blankSpaces, $size);
+        $initialGrid = Grid::addGaps($solution->grid->matrix, $blankSpaces, $size);
 
         return new self($solution, $initialGrid);
     }

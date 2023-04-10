@@ -4,4 +4,6 @@
 .phpunit.cache
 .phpunit.result.cache
 coverage
+packages
+var/*
 vendor

@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Antidot\Cli\Application\Console;
+use Antidot\Runtime\AntidotRuntime;
+
+$_SERVER['APP_RUNTIME'] = AntidotRuntime::class;
+
+chdir(dirname(__DIR__));
+$rootDir = dirname(__DIR__);
+
+require_once $rootDir . '/vendor/autoload_runtime.php';
+
+set_time_limit(0);
+
+return static function () use ($rootDir): void {
+    $container = require $rootDir . '/config/cli-container.php';
+    $console = $container->get(Console::class);
+
+    $console->run();
+};
