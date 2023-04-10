@@ -46,17 +46,25 @@ final readonly class Solution
       {
           $grid = new Grid($matrix);
 
-          $move = $grid->tryNextMoveByTriangulation();
-          if ($move instanceof Move) {
-              return $grid->move($move);
+          for ($row = 0; $row < $size; $row++) {
+              $block = $grid->getBlockIndex($row, $row);
+              $position = new Position($row, $row, $block);
+              $move = SinglePositionTechnique::place($position, $grid);
+              if ($move instanceof Move) {
+                  return $grid->move($move);
+              }
           }
 
           for ($row = 0; $row < $size; $row++) {
               $block = $grid->getBlockIndex($row, $row);
-              $move = SinglePositionTechnique::place(new Position($row, $row, $block), $grid);
+              $position = new Position($row, $row, $block);
+              $move = SingeCandidateTechnique::place($position, $grid);
               if ($move instanceof Move) {
                   return $grid->move($move);
               }
+          }
+
+          for ($row = 0; $row < $size; $row++) {
               for ($col = 0; $col < $size; $col++) {
                   if (is_numeric($grid->matrix[$row][$col])) {
                       continue;
@@ -64,7 +72,7 @@ final readonly class Solution
                   $block = $grid->getBlockIndex($row, $col);
                   shuffle($numbers);
                   foreach ($numbers as $number) {
-                      $move = $grid->tryNextMove(new Move($row, $col, $block, $number));
+                      $move = $grid->tryNextMove(new Move(new Position($row, $col, $block), $number));
                       if ($move instanceof Move) {
                           return $grid->move($move);
                       }

@@ -48,7 +48,7 @@ final class SinglePositionTechnique
 
         foreach ($options as $block => $option) {
             if (1 === count($option)) {
-                return new Move($position->row, $option[0][0], $block, $option[0][1]);
+                return new Move(new Position($position->row, $option[0][0], $block), $option[0][1]);
             }
         }
 
@@ -83,7 +83,7 @@ final class SinglePositionTechnique
 
         foreach ($options as $block => $option) {
             if (1 === count($option)) {
-                return new Move($option[0][0], $position->col, $block, $option[0][1]);
+                return new Move(new Position($option[0][0], $position->col, $block), $option[0][1]);
             }
         }
 

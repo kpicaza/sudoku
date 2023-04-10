@@ -115,49 +115,22 @@ final readonly class Grid
     {
         $matrix = $this->matrix;
 
-        $matrix[$move->row][$move->col] = (string)$move->value;
+        $matrix[$move->position->row][$move->position->col] = (string)$move->value;
 
         return new self($matrix);
     }
 
-    public function tryNextMoveByTriangulation(): ?Move
-    {
-        foreach ($this->matrix as $row => $cols) {
-            $lockedNumbersInVertical = $this->getRowNumbers($this->matrix[$row]);
-            foreach ($cols as $col => $number) {
-                if (is_numeric($number)) {
-                    continue;
-                }
-                $block = $this->getBlockIndex($row, $col);
-                $lockedNumbersInABlock = $this->getRowNumbers($this->blockMatrix[$block]);
-                $lockedNumbersInAHorizontal = $this->getRowNumbers($this->verticalMatrix[$col]);
-
-                $lockedNumbers = array_unique(
-                    array_merge($lockedNumbersInABlock, $lockedNumbersInVertical, $lockedNumbersInAHorizontal)
-                );
-
-                $possibleNumbers = array_diff($this->numbers, $lockedNumbers);
-
-                if (1 === count($possibleNumbers)) {
-                    return new Move($row, $col, $block, end($possibleNumbers));
-                }
-            }
-        }
-
-        return null;
-    }
-
     public function tryNextMove(Move $move): ?Move
     {
-        if (in_array((string)$move->value, $this->matrix[$move->row], true)) {
+        if (in_array((string)$move->value, $this->matrix[$move->position->row], true)) {
             return null;
         }
 
-        if (in_array((string)$move->value, $this->verticalMatrix[$move->col], true)) {
+        if (in_array((string)$move->value, $this->verticalMatrix[$move->position->col], true)) {
             return null;
         }
 
-        if (in_array((string)$move->value, $this->blockMatrix[$move->block], true)) {
+        if (in_array((string)$move->value, $this->blockMatrix[$move->position->block], true)) {
             return null;
         }
 
@@ -168,7 +141,7 @@ final readonly class Grid
      * @param array<int, string> $row
      * @return array<int, string>
      */
-    private function getRowNumbers(array $row): array
+    public function getRowNumbers(array $row): array
     {
         return array_filter($row, static fn ($number) => is_numeric($number));
     }

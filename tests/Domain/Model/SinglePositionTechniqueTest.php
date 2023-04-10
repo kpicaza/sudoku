@@ -21,9 +21,9 @@ final class SinglePositionTechniqueTest extends TestCase
         $grid = CsvGridFactory::fromFileLocation($input);
 
         $position = new Position(
-            $expectedMove->row,
-            $expectedMove->col,
-            $grid->getBlockIndex($expectedMove->row, $expectedMove->col)
+            $expectedMove->position->row,
+            $expectedMove->position->col,
+            $grid->getBlockIndex($expectedMove->position->row, $expectedMove->position->col)
         );
 
         $move = SinglePositionTechnique::place($position, $grid);
@@ -34,10 +34,10 @@ final class SinglePositionTechniqueTest extends TestCase
     public static function getExpectedMove(): Generator
     {
         yield 'Find the 7 in the third block' => [
-            new Move(3, 7, 5, 7)
+            new Move(new Position(3, 7, 5), 7)
         ];
         yield 'Find the 7 in the first block' => [
-            new Move(1, 0, 0, 7)
+            new Move(new Position(1, 0, 0), 7)
         ];
     }
 }
