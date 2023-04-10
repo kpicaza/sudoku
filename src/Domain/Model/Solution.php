@@ -52,12 +52,17 @@ final readonly class Solution
           }
 
           for ($row = 0; $row < $size; $row++) {
+              $block = $grid->getBlockIndex($row, $row);
+              $move = SinglePositionTechnique::place(new Position($row, $row, $block), $grid);
+              if ($move instanceof Move) {
+                  return $grid->move($move);
+              }
               for ($col = 0; $col < $size; $col++) {
                   if (is_numeric($grid->matrix[$row][$col])) {
                       continue;
                   }
-                  shuffle($numbers);
                   $block = $grid->getBlockIndex($row, $col);
+                  shuffle($numbers);
                   foreach ($numbers as $number) {
                       $move = $grid->tryNextMove(new Move($row, $col, $block, $number));
                       if ($move instanceof Move) {

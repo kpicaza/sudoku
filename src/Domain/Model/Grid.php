@@ -18,7 +18,7 @@ final readonly class Grid
     public int $size;
     public int $blockSize;
     /** @var array<int>  */
-    private array $numbers;
+    public array $numbers;
 
     /** @param Matrix $matrix */
     public function __construct(array $matrix)
