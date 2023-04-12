@@ -22,7 +22,7 @@ return static function (Application $app, ContainerInterface $container): void {
             'index.html',
             [
                 'block_size' => 3,
-                'blank_spaces' => 61,
+                'blank_spaces' => 51,
                 'grid' => (Game::withBlockSizeAndBlankSpaces(3, 51))->initialGrid->matrix
 
             ]

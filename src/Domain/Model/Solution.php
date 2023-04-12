@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kpicaza\Sudoku\Domain\Model;
 
 use InvalidArgumentException;
+use Kpicaza\Sudoku\Infrastructure\Format\CsvPrinter;
 
 final readonly class Solution
 {
@@ -17,20 +18,25 @@ final readonly class Solution
 
       public static function fromInitial(Grid $grid): self
       {
-          $gridMatrix = $grid->matrix;
-
-          $numbers = range(1, $grid->size);
+          $gridMatrix = clone $grid;
 
           $tries = 0;
           $maxTries = $grid->size * $grid->size * $grid->blockSize;
           do {
-              $grid = self::fillGrid($grid->size, $grid->matrix, $numbers);
-              if (null === $grid) {
-                  $grid = new Grid($gridMatrix);
+              $grid = self::fillGrid($grid->size, $grid->matrix);
+              $isFullFilled = Solution::isFullFilled($grid ?? $gridMatrix);
+              if (false === $isFullFilled && null === $grid) {
+                  $grid = $gridMatrix;
                   $tries++;
+                  continue;
+              }
+
+              if (null === $grid) {
+                  $grid = $gridMatrix;
               }
 
               if ($tries === $maxTries) {
+                  $grid = $gridMatrix;
                   break;
               }
           } while (false === Solution::isFullFilled($grid));
@@ -40,9 +46,8 @@ final readonly class Solution
 
       /**
        * @param array<int, array<int, string>> $matrix
-       * @param array<int> $numbers
        */
-      public static function fillGrid(int $size, array $matrix, array $numbers): ?Grid
+      public static function fillGrid(int $size, array $matrix): ?Grid
       {
           $grid = new Grid($matrix);
 
@@ -53,11 +58,7 @@ final readonly class Solution
               if ($move instanceof Move) {
                   return $grid->move($move);
               }
-          }
 
-          for ($row = 0; $row < $size; $row++) {
-              $block = $grid->getBlockIndex($row, $row);
-              $position = new Position($row, $row, $block);
               $move = SingeCandidateTechnique::place($position, $grid);
               if ($move instanceof Move) {
                   return $grid->move($move);
@@ -65,18 +66,11 @@ final readonly class Solution
           }
 
           for ($row = 0; $row < $size; $row++) {
-              for ($col = 0; $col < $size; $col++) {
-                  if (is_numeric($grid->matrix[$row][$col])) {
-                      continue;
-                  }
-                  $block = $grid->getBlockIndex($row, $col);
-                  shuffle($numbers);
-                  foreach ($numbers as $number) {
-                      $move = $grid->tryNextMove(new Move(new Position($row, $col, $block), $number));
-                      if ($move instanceof Move) {
-                          return $grid->move($move);
-                      }
-                  }
+              $block = $grid->getBlockIndex($row, $row);
+              $position = new Position($row, $row, $block);
+              $move = BackTracingTechnique::place($position, $grid);
+              if ($move instanceof Move) {
+                  return $grid->move($move);
               }
           }
 
@@ -94,4 +88,14 @@ final readonly class Solution
               )
           );
       }
+
+    public static function hasSingleSolution(Grid $grid): bool
+    {
+        $sample1Grid = self::fromInitial($grid);
+        $sample1 = CsvPrinter::render($sample1Grid->grid);
+        $sample2Grid = self::fromInitial($grid);
+        $sample2 = CsvPrinter::render($sample2Grid->grid);
+
+        return $sample1 === $sample2;
+    }
 }

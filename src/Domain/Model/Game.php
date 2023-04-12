@@ -47,6 +47,7 @@ final class Game
     public static function withBlockSizeAndBlankSpaces(int $blockSize, int $blankSpaces): self
     {
         $size = $blockSize * $blockSize;
+
         $grid = Grid::fillEmptyGrid($size, $blockSize);
         $solution = Solution::fromInitial($grid);
         $initialGrid = Grid::addGaps($solution->grid->matrix, $blankSpaces, $size);

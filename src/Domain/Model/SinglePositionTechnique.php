@@ -25,7 +25,7 @@ final class SinglePositionTechnique
     {
         $row = $grid->matrix[$position->row];
 
-        $missingNumbers = array_diff($grid->numbers, array_map(fn (string $number) => (int)$number, $row));
+        $missingNumbers = array_diff($grid->numbers, $grid->getRowNumbers($row));
         $rowBlocks = [];
         foreach (array_keys($row) as $col) {
             $rowBlocks[] = $grid->getBlockIndex($position->row, $col);
@@ -59,7 +59,7 @@ final class SinglePositionTechnique
     {
         $col = $grid->verticalMatrix[$position->col];
 
-        $missingNumbers = array_diff($grid->numbers, array_map(fn (string $number) => (int)$number, $col));
+        $missingNumbers = array_diff($grid->numbers, $grid->getRowNumbers($col));
         $colBlocks = [];
         foreach (array_keys($col) as $row) {
             $colBlocks[] = $grid->getBlockIndex($row, $position->col);
@@ -88,23 +88,6 @@ final class SinglePositionTechnique
         }
 
         return null;
-    }
-
-    private function isAvailablePosition(int $missingNumber, Position $position, Grid $grid): bool
-    {
-        if (in_array((string)$missingNumber, $grid->matrix[$position->row], true)) {
-            return false;
-        }
-
-        if (in_array((string)$missingNumber, $grid->verticalMatrix[$position->col], true)) {
-            return false;
-        }
-
-        if (in_array((string)$missingNumber, $grid->blockMatrix[$position->block], true)) {
-            return false;
-        }
-
-        return true;
     }
 
     /** @param array<int> $colBlocks */
@@ -144,7 +127,7 @@ final class SinglePositionTechnique
     ): array {
         $choices = [];
         foreach ($missingNumbers as $missingNumber) {
-            if (false === $this->isAvailablePosition($missingNumber, $tryPosition, $grid)) {
+            if (false === $grid->isAvailablePosition($missingNumber, $tryPosition)) {
                 continue;
             }
             if (true === $this->isAvailableInNearBlocks($missingNumber, $blocks, $block, $grid)) {

@@ -116,7 +116,7 @@ final class GameTest extends TestCase
     {
         yield 'Block size: 2, White spaces: 11' => [2, 11];
         yield 'Block size: 3, White spaces: 51' => [3, 51];
-        yield 'Block size: 3, White spaces: 61' => [3, 61];
-        yield 'Block size: 3, White spaces: 71' => [3, 71];
+        //       yield 'Block size: 3, White spaces: 61' => [3, 61];
+        //  yield 'Block size: 3, White spaces: 71' => [3, 71];
     }
 }

@@ -60,9 +60,19 @@ final readonly class Grid
                 $colIndex = random_int(0, $size - 1);
             } while (in_array([$rowIndex, $colIndex], $usedIndexes, true));
 
-            $matrix[$rowIndex][$colIndex] = ' ';
+            $lastNumber = $matrix[$rowIndex][$colIndex];
             $usedIndexes[] = [$rowIndex, $colIndex];
-            $blankSpaces--;
+            if (false === is_numeric($lastNumber)) {
+                continue;
+            }
+
+            $matrix[$rowIndex][$colIndex] = ' ';
+
+            if (Solution::hasSingleSolution(new Grid($matrix))) {
+                $blankSpaces--;
+                continue;
+            }
+            $matrix[$rowIndex][$colIndex] = $lastNumber;
         }
 
         return new self($matrix);
@@ -120,21 +130,30 @@ final readonly class Grid
         return new self($matrix);
     }
 
+    public function isAvailablePosition(int $missingNumber, Position $position): bool
+    {
+        if (in_array((string)$missingNumber, $this->matrix[$position->row], true)) {
+            return false;
+        }
+
+        if (in_array((string)$missingNumber, $this->verticalMatrix[$position->col], true)) {
+            return false;
+        }
+
+        if (in_array((string)$missingNumber, $this->blockMatrix[$position->block], true)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function tryNextMove(Move $move): ?Move
     {
-        if (in_array((string)$move->value, $this->matrix[$move->position->row], true)) {
-            return null;
+        if ($this->isAvailablePosition($move->value, $move->position)) {
+            return $move;
         }
 
-        if (in_array((string)$move->value, $this->verticalMatrix[$move->position->col], true)) {
-            return null;
-        }
-
-        if (in_array((string)$move->value, $this->blockMatrix[$move->position->block], true)) {
-            return null;
-        }
-
-        return $move;
+        return null;
     }
 
     /**
