@@ -3,21 +3,19 @@
 
 declare(strict_types=1);
 
-use Antidot\Cli\Application\Console;
-use Antidot\Runtime\AntidotRuntime;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Kpicaza\Sudoku\Infrastructure\Symfony\Kernel;
 
-$_SERVER['APP_RUNTIME'] = AntidotRuntime::class;
+if (!is_file(dirname(__DIR__).'/vendor/autoload_runtime.php')) {
+    throw new LogicException('Symfony Runtime is missing. Try running "composer require symfony/runtime".');
+}
 
-chdir(dirname(__DIR__));
-$rootDir = dirname(__DIR__);
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
-require_once $rootDir . '/vendor/autoload_runtime.php';
+ini_set('memory_limit', -1);
 
-set_time_limit(0);
+return function (array $context) {
+    $kernel = new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
 
-return static function () use ($rootDir): void {
-    $container = require $rootDir . '/config/cli-container.php';
-    $console = $container->get(Console::class);
-
-    $console->run();
+    return new Application($kernel);
 };
