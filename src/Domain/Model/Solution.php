@@ -65,6 +65,11 @@ final readonly class Solution
               }
           }
 
+          $move = PencilMarkTechnique::place($grid);
+          if ($move instanceof Move) {
+              return $grid->move($move);
+          }
+
           for ($row = 0; $row < $size; $row++) {
               $block = $grid->getBlockIndex($row, $row);
               $position = new Position($row, $row, $block);

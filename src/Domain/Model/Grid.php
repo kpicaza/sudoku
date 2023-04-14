@@ -19,6 +19,8 @@ final readonly class Grid
     public int $blockSize;
     /** @var array<int>  */
     public array $numbers;
+    /** @var array<int, array<int, array<int>>> */
+    public array $pencilMarks;
 
     /** @param Matrix $matrix */
     public function __construct(array $matrix)
@@ -29,6 +31,7 @@ final readonly class Grid
         $this->matrix = $matrix;
         $this->verticalMatrix = $this->verticalGrid();
         $this->blockMatrix = $this->blockGrid();
+        $this->pencilMarks = $this->pencilMarks();
     }
 
     public static function fillEmptyGrid(int $size, int $blockSize): self
@@ -103,6 +106,35 @@ final readonly class Grid
         }
 
         return $matrix;
+    }
+
+    /**
+     * @return array<int, array<int, array<int>>>
+     */
+    private function pencilMarks(): array
+    {
+        $pencilMarks = [];
+        foreach ($this->matrix as $row => $cols) {
+            $horizontalLockedNumbers = $this->getRowNumbers($cols);
+            foreach ($cols as $col => $value) {
+                if (is_numeric($value)) {
+                    continue;
+                }
+
+                $verticalLockedNumbers = $this->getRowNumbers($this->verticalMatrix[$col]);
+                $blockLockedNumbers = $this->getRowNumbers($this->blockMatrix[$this->getBlockIndex($row, $col)]);
+                $lockedNumbers = array_unique(array_merge(
+                    $horizontalLockedNumbers,
+                    $verticalLockedNumbers,
+                    $blockLockedNumbers
+                ));
+
+                $availableNumbers = array_diff($this->numbers, $lockedNumbers);
+                $pencilMarks[$row][$col] = $availableNumbers;
+            }
+        }
+
+        return $pencilMarks;
     }
 
     public function canBeSolvedWith(Grid $solutionGrid): bool
