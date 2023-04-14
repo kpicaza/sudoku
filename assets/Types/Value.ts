@@ -1,6 +1,6 @@
-import {Position} from "./Position";
+import { Position } from './Position';
 
 export type Value = {
-    position: Position
-    value: string
-}
+  position: Position;
+  value: string;
+};

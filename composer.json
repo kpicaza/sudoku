@@ -52,8 +52,8 @@
             "@static",
             "@suggestions"
         ],
-        "cs-check": "ecs check config src tests",
-        "cs-fix": "ecs check config src tests --fix",
+        "cs-check": "ecs check config src tests && yarn lint",
+        "cs-fix": "ecs check config src tests --fix && yarn format",
         "suggestions": "rector process src --dry-run",
         "rector": "rector process src",
         "static": "psalm",

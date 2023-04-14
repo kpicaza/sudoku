@@ -1,8 +1,8 @@
-import {Value} from "./Value";
+import { Value } from './Value';
 
 export type Box = {
-    value: Value
-    selected: boolean
-    inlined: boolean
-    fixed: boolean
-}
+  value: Value;
+  selected: boolean;
+  inlined: boolean;
+  fixed: boolean;
+};
