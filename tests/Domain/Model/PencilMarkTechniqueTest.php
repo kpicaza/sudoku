@@ -6,6 +6,7 @@ namespace Test\Kpicaza\Sudoku\Domain\Model;
 
 use Generator;
 use Kpicaza\Sudoku\Domain\Model\Move;
+use Kpicaza\Sudoku\Domain\Model\PencilMarkTechnique;
 use Kpicaza\Sudoku\Domain\Model\Position;
 use Kpicaza\Sudoku\Infrastructure\Format\CsvGridFactory;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +20,7 @@ final class PencilMarkTechniqueTest extends TestCase
 
         $grid = CsvGridFactory::fromFileLocation($input);
 
-        $move = \Kpicaza\Sudoku\Domain\Model\PencilMarkTechnique::place($grid);
+        $move = PencilMarkTechnique::place($grid);
 
         $this->assertEquals($expectedMove, $move);
     }

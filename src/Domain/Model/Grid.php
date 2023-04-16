@@ -19,7 +19,7 @@ final readonly class Grid
     public int $blockSize;
     /** @var array<int>  */
     public array $numbers;
-    /** @var array<int, array<int, array<int>>> */
+    /** @var array<PencilMark> */
     public array $pencilMarks;
 
     /** @param Matrix $matrix */
@@ -109,7 +109,7 @@ final readonly class Grid
     }
 
     /**
-     * @return array<int, array<int, array<int>>>
+     * @return array<PencilMark>
      */
     private function pencilMarks(): array
     {
@@ -121,8 +121,9 @@ final readonly class Grid
                     continue;
                 }
 
+                $block = $this->getBlockIndex($row, $col);
                 $verticalLockedNumbers = $this->getRowNumbers($this->verticalMatrix[$col]);
-                $blockLockedNumbers = $this->getRowNumbers($this->blockMatrix[$this->getBlockIndex($row, $col)]);
+                $blockLockedNumbers = $this->getRowNumbers($this->blockMatrix[$block]);
                 $lockedNumbers = array_unique(array_merge(
                     $horizontalLockedNumbers,
                     $verticalLockedNumbers,
@@ -130,7 +131,10 @@ final readonly class Grid
                 ));
 
                 $availableNumbers = array_diff($this->numbers, $lockedNumbers);
-                $pencilMarks[$row][$col] = $availableNumbers;
+                $pencilMarks[] = new PencilMark(
+                    new Position($row, $col, $block),
+                    $availableNumbers
+                );
             }
         }
 

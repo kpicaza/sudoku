@@ -9,13 +9,14 @@ final class PencilMarkTechnique
     public static function place(Grid $grid): ?Move
     {
         $pencilMarks = $grid->pencilMarks;
-        foreach ($pencilMarks as $row => $cols) {
-            foreach ($cols as $col => $pencilMark) {
-                if (1 !== count($pencilMark)) {
-                    continue;
-                }
-                return new Move(new Position($row, $col, $grid->getBlockIndex($row, $col)), end($pencilMark));
+        foreach ($pencilMarks as $pencilMark) {
+            if (1 !== count($pencilMark->pencilMark)) {
+                continue;
             }
+            return new Move(
+                $pencilMark->position,
+                $pencilMark->pencilMark[array_key_first($pencilMark->pencilMark)]
+            );
         }
 
         return null;
