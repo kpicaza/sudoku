@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku\Domain\Model;
 
-class BackTracingTechnique
+final class BackTracingTechnique
 {
     public static function place(Position $position, Grid $grid): ?Move
     {

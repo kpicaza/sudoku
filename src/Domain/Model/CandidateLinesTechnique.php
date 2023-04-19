@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kpicaza\Sudoku\Domain\Model;
 
-class CandidateLinesTechnique
+final class CandidateLinesTechnique
 {
     public static function place(Grid $grid): ?Move
     {

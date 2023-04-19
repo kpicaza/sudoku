@@ -64,7 +64,7 @@ final class GameTest extends TestCase
 
         $game = Game::fromInitialGrid(CsvGridFactory::fromFileLocation($initialGridFile));
 
-        $this->assertSame($solution, CsvPrinter::render($game->solutionGrid->grid));
+        $this->assertSame($solution, CsvPrinter::render($game->solution->grid));
     }
 
     public function testCanNotSolveInvalidInitialGrid(): void

@@ -9,13 +9,13 @@ use InvalidArgumentException;
 
 final class Game
 {
-    public readonly ?Solution $solutionGrid;
+    public readonly ?Solution $solution;
     public readonly Grid $initialGrid;
     private string $solutionState;
 
     public function __construct(?Solution $solutionGrid, ?Grid $initialGrid = null, string $message = '')
     {
-        $this->solutionGrid = $solutionGrid;
+        $this->solution = $solutionGrid;
         $this->initialGrid = $initialGrid ?? new Grid([]);
         $this->solutionState = $message;
 
@@ -55,6 +55,17 @@ final class Game
         return new self($solution, $initialGrid);
     }
 
+    public static function withBlockSizeAndBlankSpacesNoSolutionChecks(int $blockSize, int $blankSpaces): self
+    {
+        $size = $blockSize * $blockSize;
+
+        $grid = Grid::fillEmptyGrid($size, $blockSize);
+        $solution = Solution::fromInitial($grid);
+        $initialGrid = Grid::addGapsNoChecks($solution->grid->matrix, $blankSpaces, $size);
+
+        return new self($solution, $initialGrid);
+    }
+
     public function solutionStatus(): string
     {
         return $this->solutionState;
@@ -62,14 +73,14 @@ final class Game
 
     private function complyRules(): void
     {
-        if (null === $this->solutionGrid) {
+        if (null === $this->solution) {
             return;
         }
 
-        $solution = $this->solutionGrid->grid;
-        $rowsCount = $this->solutionGrid->grid->size;
+        $solution = $this->solution->grid;
+        $rowsCount = $this->solution->grid->size;
 
-        if (false === $this->initialGrid->canBeSolvedWith($this->solutionGrid->grid)) {
+        if (false === $this->initialGrid->canBeSolvedWith($this->solution->grid)) {
             $this->solutionState = 'The proposed solution is incorrect.';
             return;
         }
@@ -116,5 +127,17 @@ final class Game
                 throw new Exception('Row is invalid.');
             }
         }
+    }
+
+    public function id(): string
+    {
+        $seed = '';
+        foreach ($this->initialGrid->matrix as $row) {
+            foreach ($row as $value) {
+                $seed .= $value;
+            }
+        }
+
+        return md5($seed);
     }
 }

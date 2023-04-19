@@ -81,6 +81,29 @@ final readonly class Grid
         return new self($matrix);
     }
 
+    /** @param Matrix $matrix */
+    public static function addGapsNoChecks(array $matrix, int $blankSpaces, int $size): self
+    {
+        $usedIndexes = [];
+        while (0 < $blankSpaces) {
+            do {
+                $rowIndex = random_int(0, $size - 1);
+                $colIndex = random_int(0, $size - 1);
+            } while (in_array([$rowIndex, $colIndex], $usedIndexes, true));
+
+            $lastNumber = $matrix[$rowIndex][$colIndex];
+            $usedIndexes[] = [$rowIndex, $colIndex];
+            if (false === is_numeric($lastNumber)) {
+                continue;
+            }
+
+            $matrix[$rowIndex][$colIndex] = ' ';
+            $blankSpaces--;
+        }
+
+        return new self($matrix);
+    }
+
     /** @return Matrix */
     private function verticalGrid(): array
     {
