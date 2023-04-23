@@ -6,12 +6,14 @@ namespace Kpicaza\Sudoku\Domain\Model;
 
 use Exception;
 use InvalidArgumentException;
+use RuntimeException;
 
 final class Game
 {
     public readonly ?Solution $solution;
     public readonly Grid $initialGrid;
     private string $solutionState;
+    private bool $hasDifferentSolutions = false;
 
     public function __construct(?Solution $solutionGrid, ?Grid $initialGrid = null, string $message = '')
     {
@@ -48,20 +50,11 @@ final class Game
     {
         $size = $blockSize * $blockSize;
 
-        $grid = Grid::fillEmptyGrid($size, $blockSize);
-        $solution = Solution::fromInitial($grid);
-        $initialGrid = Grid::addGaps($solution->grid->matrix, $blankSpaces, $size);
-
-        return new self($solution, $initialGrid);
-    }
-
-    public static function withBlockSizeAndBlankSpacesNoSolutionChecks(int $blockSize, int $blankSpaces): self
-    {
-        $size = $blockSize * $blockSize;
-
-        $grid = Grid::fillEmptyGrid($size, $blockSize);
-        $solution = Solution::fromInitial($grid);
-        $initialGrid = Grid::addGapsNoChecks($solution->grid->matrix, $blankSpaces, $size);
+        do {
+            $grid = Grid::fillEmptyGrid($size, $blockSize);
+            $solution = Solution::fromInitial($grid);
+            $initialGrid = Grid::addGaps($solution->grid, $blankSpaces, $size);
+        } while (false === Solution::hasSingleSolution($initialGrid));
 
         return new self($solution, $initialGrid);
     }
@@ -139,5 +132,25 @@ final class Game
         }
 
         return md5($seed);
+    }
+
+    public function addSolution(?Solution $solution): void
+    {
+        if (null === $this->solution) {
+            throw new RuntimeException(
+                'Cannot add solution to an unsolvable grid'
+            );
+        }
+
+        if (null === $solution) {
+            return;
+        }
+
+        $this->hasDifferentSolutions = false === $solution->equalTo($this->solution);
+    }
+
+    public function hasDifferentSolutions(): bool
+    {
+        return $this->hasDifferentSolutions;
     }
 }

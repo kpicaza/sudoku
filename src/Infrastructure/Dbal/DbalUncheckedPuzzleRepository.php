@@ -26,13 +26,33 @@ final readonly class DbalUncheckedPuzzleRepository implements UncheckedPuzzleRep
     public function __construct(
         private Connection $connection
     ) {
-        $this->createSchema($this->connection);
+        $this->createSchema();
     }
 
     public function save(Game $game): void
     {
+        $gameId = $game->id();
+        $gameExist = $this->findGame($gameId);
+
+        if ($gameExist) {
+            $this->connection->executeQuery(
+                <<<SQL
+                    UPDATE unchecked_puzzles
+                    SET times_solved = (times_solved + 1),
+                        different_solutions = (different_solutions + :new_solution)
+                    WHERE id = :game_id
+                SQL,
+                [
+                    'new_solution' => (int)$game->hasDifferentSolutions(),
+                    'game_id' => $gameId,
+                ]
+            );
+
+            return;
+        }
+
         $this->connection->insert('unchecked_puzzles', [
-            'id' => $game->id(),
+            'id' => $gameId,
             'initial_grid' => CsvPrinter::render($game->initialGrid),
             'solution' => CsvPrinter::render($game->solution?->grid ?? new Grid([])),
             'times_solved' => 1,
@@ -43,15 +63,12 @@ final readonly class DbalUncheckedPuzzleRepository implements UncheckedPuzzleRep
 
     public function get(string $gameId): Game
     {
-        $query = $this->connection->executeQuery(
-            'SELECT * FROM unchecked_puzzles WHERE id = :game_id',
-            [
-                'game_id' => $gameId,
-            ]
-        );
-
-        /** @var UncheckedPuzzle $result */
-        $result = $query->fetchAssociative();
+        $result = $this->findGame($gameId);
+        if (null === $result) {
+            throw new \InvalidArgumentException(
+                'There is no available game for given id.'
+            );
+        }
 
         return Game::fromSolutionGrid(
             CsvGridFactory::fromString($result['solution']),
@@ -59,7 +76,7 @@ final readonly class DbalUncheckedPuzzleRepository implements UncheckedPuzzleRep
         );
     }
 
-    private function createSchema(Connection $connection): void
+    private function createSchema(): void
     {
         $tableName = 'unchecked_puzzles';
         $schemaManager = $this->connection->createSchemaManager();
@@ -89,5 +106,21 @@ final readonly class DbalUncheckedPuzzleRepository implements UncheckedPuzzleRep
             }
             $this->connection->executeQuery($query);
         }
+    }
+
+    /** @return UncheckedPuzzle|null */
+    private function findGame(string $gameId): ?array
+    {
+        $query = $this->connection->executeQuery(
+            'SELECT * FROM unchecked_puzzles WHERE id = :game_id',
+            [
+                'game_id' => $gameId,
+            ]
+        );
+
+        /** @var false|UncheckedPuzzle $result */
+        $result = $query->fetchAssociative();
+
+        return $result ?: null;
     }
 }

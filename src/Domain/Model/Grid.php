@@ -47,6 +47,8 @@ final readonly class Grid
         for ($i = 0;$i < $blockSize;$i++) {
             $matrix[$i] = $numbers;
             $tmpNumbers = array_splice($numbers, 0, $blockSize);
+            shuffle($tmpNumbers);
+            shuffle($tmpNumbers);
             $numbers = array_merge($numbers, $tmpNumbers);
         }
 
@@ -54,8 +56,10 @@ final readonly class Grid
     }
 
     /** @param Matrix $matrix */
-    public static function addGaps(array $matrix, int $blankSpaces, int $size): self
+    public static function addGaps(Grid $grid, int $blankSpaces, int $size): self
     {
+        $startingBlankSpaces = $blankSpaces;
+        $matrix = $grid->matrix;
         $usedIndexes = [];
         while (0 < $blankSpaces) {
             do {
@@ -71,34 +75,20 @@ final readonly class Grid
 
             $matrix[$rowIndex][$colIndex] = ' ';
 
-            if (Solution::hasSingleSolution(new Grid($matrix))) {
-                $blankSpaces--;
-                continue;
+            try {
+                if (Solution::hasSingleSolution(new Grid($matrix))) {
+                    $blankSpaces--;
+                    continue;
+                }
+            } catch (\Exception) {
             }
+
             $matrix[$rowIndex][$colIndex] = $lastNumber;
-        }
-
-        return new self($matrix);
-    }
-
-    /** @param Matrix $matrix */
-    public static function addGapsNoChecks(array $matrix, int $blankSpaces, int $size): self
-    {
-        $usedIndexes = [];
-        while (0 < $blankSpaces) {
-            do {
-                $rowIndex = random_int(0, $size - 1);
-                $colIndex = random_int(0, $size - 1);
-            } while (in_array([$rowIndex, $colIndex], $usedIndexes, true));
-
-            $lastNumber = $matrix[$rowIndex][$colIndex];
-            $usedIndexes[] = [$rowIndex, $colIndex];
-            if (false === is_numeric($lastNumber)) {
-                continue;
+            if ($size * $size === count($usedIndexes)) {
+                $matrix = $grid->matrix;
+                $usedIndexes = [];
+                $blankSpaces = $startingBlankSpaces;
             }
-
-            $matrix[$rowIndex][$colIndex] = ' ';
-            $blankSpaces--;
         }
 
         return new self($matrix);

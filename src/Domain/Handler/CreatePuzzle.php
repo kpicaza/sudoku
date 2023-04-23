@@ -17,7 +17,7 @@ final readonly class CreatePuzzle
 
     public function handle(CreatePuzzleCommand $command): Game
     {
-        $game = Game::withBlockSizeAndBlankSpacesNoSolutionChecks(
+        $game = Game::withBlockSizeAndBlankSpaces(
             $command->blockSize,
             $command->blankSpaces
         );

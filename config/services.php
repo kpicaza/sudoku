@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Kpicaza\Sudoku\Application\SudokuPuzzles;
 use Kpicaza\Sudoku\Domain\UncheckedPuzzleRepository;
+use Kpicaza\Sudoku\Infrastructure\Dbal\DbalSudokuPuzzles;
 use Kpicaza\Sudoku\Infrastructure\Dbal\DbalUncheckedPuzzleRepository;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -17,6 +19,10 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->set(UncheckedPuzzleRepository::class, DbalUncheckedPuzzleRepository::class)
+        ->public()
+    ;
+    $services
+        ->set(SudokuPuzzles::class, DbalSudokuPuzzles::class)
         ->public()
     ;
 
