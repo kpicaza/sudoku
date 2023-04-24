@@ -1,8 +1,9 @@
-import { html, css, LitElement } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 import { Position } from './Types/Position';
 import { Value } from './Types/Value';
 import { Box } from './Types/Box';
+import { DrawMode } from './Types/DrawMode';
 
 export class ValueBox extends LitElement {
   static styles = css`
@@ -25,8 +26,10 @@ export class ValueBox extends LitElement {
     }
     .border-bottom {
       border-bottom: 2px solid #2e3436;
+      margin-top: 1px;
     }
     .sudoku-col {
+      display: inline;
       border: none;
       width: 100%;
       height: 100%;
@@ -36,9 +39,14 @@ export class ValueBox extends LitElement {
       vertical-align: central;
       outline: none;
       caret-color: transparent;
+      position: relative;
+      top: 0;
+      left: 0;
+      background: transparent;
     }
     .sudoku-col.fixed {
       color: #000;
+      background: transparent;
     }
     .sudoku-col.selected {
       background: #d9edf7;
@@ -46,23 +54,34 @@ export class ValueBox extends LitElement {
     .sudoku-col.inlined {
       background: #ebebeb;
     }
-    .sudoku-col:focus {
-      background: #b8daff;
+    .sudoku-col:focus,
+    .sudoku-col::selection {
+      background: transparent;
+    }
+    .sudoku-col.bg-transparent {
+      background: transparent;
     }
   `;
 
   @property() position: Position = { row: 0, col: 0, block: 0 };
 
   @property() box: Box = {
-    value: { position: { row: 0, col: 0, block: 0 }, value: ' ' },
+    value: {
+      position: { row: 0, col: 0, block: 0 },
+      value: ' ',
+      pencilMarks: [],
+    },
     selected: false,
     fixed: false,
+    focused: false,
     inlined: false,
   };
 
   @property() blockSize: number = 3;
 
   @property() size: number;
+
+  @property() drawMode: DrawMode = DrawMode.Value;
 
   constructor() {
     super();
@@ -85,12 +104,21 @@ export class ValueBox extends LitElement {
     return classNames;
   }
 
-  boxFocused() {
+  boxFocused(e: InputEvent) {
+    const input = e.target as HTMLInputElement;
+
+    input.selectionStart = 0;
+    input.selectionEnd = 1;
+
     this.dispatchEvent(
       new CustomEvent('boxWasSelected', {
         bubbles: true,
         composed: true,
-        detail: this.box.value,
+        detail: {
+          value: input.value,
+          pencilMarks: this.box.value.pencilMarks,
+          position: this.box.value.position,
+        },
       })
     );
   }
@@ -108,28 +136,65 @@ export class ValueBox extends LitElement {
   }
 
   addValue(e: InputEvent) {
-    this.box.value.value = e.data as string;
-    this.boxFocused();
+    const inputValue = e.data as string;
+    const input = e.target as HTMLInputElement;
+
+    input.selectionStart = 0;
+
+    if (inputValue && inputValue.match(/[1-9]/) === null) {
+      input.value = this.box.value.value;
+      this.boxFocused(e);
+      return;
+    }
+
+    if (this.drawMode === DrawMode.Note) {
+      return;
+    }
+
+    input.value = e.data as string;
+    this.boxFocused(e);
   }
 
   drawCol(value: Value) {
-    if (this.box.fixed === false) {
+    if (this.box.fixed) {
       return html`
+        <pencil-mark
+          style="z-index: -1"
+          .inlined=${this.box.inlined}
+          .focused=${this.box.focused}
+          .box=${this.box}
+          .drawMode=${this.drawMode}
+          .pencilMark=${this.box.value.pencilMarks}
+        ></pencil-mark>
         <input
+          style="z-index: 2"
           @focus=${this.boxFocused}
-          @input=${this.addValue}
-          class="sudoku-col ${this.getClassNames()}"
+          readonly
+          class="sudoku-col fixed ${this.getClassNames()}"
           type="text"
           maxlength="1"
+          .value="${value.value}"
         />
       `;
     }
 
     return html`
+      <pencil-mark
+        style="z-index: ${this.drawMode === DrawMode.Value ? '-1' : '2'}"
+        .inlined=${this.box.inlined}
+        .focused=${this.box.focused}
+        .selected=${this.box.selected}
+        .box=${this.box}
+        .drawMode=${this.drawMode}
+        .pencilMark=${this.box.value.pencilMarks}
+      ></pencil-mark>
       <input
+        style="z-index: ${value.value === ' ' && this.drawMode === DrawMode.Note
+          ? '-1'
+          : '2'}"
         @focus=${this.boxFocused}
-        readonly
-        class="sudoku-col fixed ${this.getClassNames()}"
+        @input=${this.addValue}
+        class="sudoku-col"
         type="text"
         maxlength="1"
         .value="${value.value}"

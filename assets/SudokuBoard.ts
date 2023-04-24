@@ -1,10 +1,12 @@
-import { html, css, LitElement } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 import './ValueBox';
+import './Components/AnnotateButton';
 import state from './Store/Store';
 import { Grid } from './Model/Grid';
 import { Value } from './Types/Value';
 import { Box } from './Types/Box';
+import { DrawMode } from './Types/DrawMode';
 
 export class SudokuBoard extends LitElement {
   static styles = css`
@@ -29,25 +31,31 @@ export class SudokuBoard extends LitElement {
     }
   `;
 
-  @property({ type: Array<Array<string>> }) grid = [];
+  @property({ type: Array<Array<string>> }) raw = [];
+
+  @property() grid: Grid;
 
   @property() blockSize: number = 3;
 
   @property() store;
 
+  @property() drawMode: DrawMode = DrawMode.Value;
+
   constructor() {
     super();
     this.store = state;
+    this.grid = Grid.fromPlainGrid(this.raw);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.store.grid = Grid.fromPlainGrid(this.grid);
+    this.grid = Grid.fromPlainGrid(this.raw);
+    this.store.grid = this.grid;
   }
 
   renderRows() {
     return html`
-      ${this.store.grid.matrix.map(
+      ${this.grid.matrix.map(
         (row: Array<Box>, key: number) => html`
           <tr>
             ${this.renderCols(row, key)}
@@ -69,23 +77,39 @@ export class SudokuBoard extends LitElement {
             }}
             .box=${col}
             block-size="${this.blockSize}"
+            .drawMode=${this.drawMode}
           ></value-box>
         `
       )}
     `;
   }
 
-  boxSelected(e: CustomEvent<Value>) {
+  selectBox(e: CustomEvent<Value>) {
     this.store.grid.setValue(e.detail);
     this.store.grid.selectWithSameValue(e.detail);
+    this.grid = this.store.grid;
+    this.requestUpdate();
+  }
+
+  changeDrawMode(e: CustomEvent<DrawMode>) {
+    this.store.drawMode = e.detail;
+    this.drawMode = this.store.drawMode;
     this.requestUpdate();
   }
 
   render() {
     return html`
-      <table class="sudoku-grid" @boxWasSelected="${this.boxSelected}">
-        ${this.renderRows()}
-      </table>
+      <div class="sudoku-grid">
+        <annotate-button
+          @drawModeChanged=${this.changeDrawMode}
+        ></annotate-button>
+        <table
+          @boxWasSelected="${this.selectBox}"
+          @pencilMarkAdded="${this.selectBox}"
+        >
+          ${this.renderRows()}
+        </table>
+      </div>
     `;
   }
 }

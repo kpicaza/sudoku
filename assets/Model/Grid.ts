@@ -23,8 +23,10 @@ export class Grid {
               block: Grid.getBlockIndex(rowIndex, colIndex, 3),
             },
             value,
+            pencilMarks: [],
           },
           selected: false,
+          focused: false,
           fixed: value !== ' ',
           inlined: false,
         };
@@ -47,20 +49,13 @@ export class Grid {
     for (const row of this.matrix) {
       let colIndex = 0;
       for (const box of row) {
-        if (box.value.value === value.value && value.value !== ' ') {
-          box.selected = true;
-        } else {
-          box.selected = false;
-        }
-        if (
+        box.selected = box.value.value === value.value && value.value !== ' ';
+        box.focused =
+          colIndex === value.position.col && rowIndex === value.position.row;
+        box.inlined =
           colIndex === value.position.col ||
           rowIndex === value.position.row ||
-          Grid.getBlockIndex(rowIndex, colIndex, 3) === value.position.block
-        ) {
-          box.inlined = true;
-        } else {
-          box.inlined = false;
-        }
+          Grid.getBlockIndex(rowIndex, colIndex, 3) === value.position.block;
 
         this.matrix[rowIndex][colIndex] = box;
         colIndex += 1;
@@ -71,13 +66,22 @@ export class Grid {
 
   setValue(value: Value) {
     const prevBox = this.matrix[value.position.row][value.position.col];
-    if (prevBox.value.value === value.value) {
+    if (
+      prevBox.value.value === value.value &&
+      prevBox.value.pencilMarks === value.pencilMarks
+    ) {
       return;
     }
 
     this.matrix[value.position.row][value.position.col] = {
-      value: { position: prevBox.value.position, value: value.value },
+      value: {
+        position: prevBox.value.position,
+        value: value.value,
+        pencilMarks:
+          prevBox.value.value !== value.value ? [] : value.pencilMarks,
+      },
       selected: true,
+      focused: true,
       fixed: prevBox.fixed,
       inlined: true,
     };
