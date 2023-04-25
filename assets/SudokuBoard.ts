@@ -2,6 +2,7 @@ import { css, html, LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 import './ValueBox';
 import './Components/AnnotateButton';
+import './Components/AppHeader';
 import state from './Store/Store';
 import { Grid } from './Model/Grid';
 import { Value } from './Types/Value';
@@ -12,14 +13,20 @@ export class SudokuBoard extends LitElement {
   static styles = css`
     :host {
       display: block;
-      padding: 25px;
+      padding: 0;
+      margin: 0;
       color: var(--sudoku-board-text-color, #000);
     }
 
+    .sudoku-menu {
+      text-align: center;
+    }
     table {
       border-spacing: 0;
       border-color: #1b1e21;
       border-style: solid;
+      margin-left: auto;
+      margin-right: auto;
     }
     tr {
       padding: 0;
@@ -28,10 +35,13 @@ export class SudokuBoard extends LitElement {
     .sudoku-grid {
       margin-left: auto;
       margin-right: auto;
+      margin-top: 35px;
     }
   `;
 
-  @property({ type: Array<Array<string>> }) raw = [];
+  @property({ type: Array<Array<string>> }) rawGrid = [];
+
+  @property({ type: Array<Array<string>> }) rawSolvedGrid = [];
 
   @property() grid: Grid;
 
@@ -44,12 +54,12 @@ export class SudokuBoard extends LitElement {
   constructor() {
     super();
     this.store = state;
-    this.grid = Grid.fromPlainGrid(this.raw);
+    this.grid = Grid.fromPlainGrid([], []);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.grid = Grid.fromPlainGrid(this.raw);
+    this.grid = Grid.fromPlainGrid(this.rawGrid, this.rawSolvedGrid);
     this.store.grid = this.grid;
   }
 
@@ -99,8 +109,10 @@ export class SudokuBoard extends LitElement {
 
   render() {
     return html`
+      <app-header></app-header>
       <div class="sudoku-grid">
         <annotate-button
+          class="sudoku-menu"
           @drawModeChanged=${this.changeDrawMode}
         ></annotate-button>
         <table

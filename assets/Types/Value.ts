@@ -5,4 +5,5 @@ export type Value = {
   position: Position;
   pencilMarks: Array<PencilMark>;
   value: string;
+  validValue: string;
 };

@@ -18,7 +18,7 @@ export class ValueBox extends LitElement {
       text-align: center;
       height: 60px;
       width: 60px;
-      border: 1px solid #c6c8ca;
+      border: 1.5px solid #c6c8ca;
       font-size: 36px;
     }
     .border-right {
@@ -27,6 +27,13 @@ export class ValueBox extends LitElement {
     .border-bottom {
       border-bottom: 2px solid #2e3436;
       margin-top: 1px;
+    }
+    .border-left {
+      border-left: 2px solid #2e3436;
+      right: 1px;
+    }
+    .border-top {
+      border-top: 2px solid #2e3436;
     }
     .sudoku-col {
       display: inline;
@@ -69,6 +76,7 @@ export class ValueBox extends LitElement {
     value: {
       position: { row: 0, col: 0, block: 0 },
       value: ' ',
+      validValue: ' ',
       pencilMarks: [],
     },
     selected: false,
@@ -94,11 +102,18 @@ export class ValueBox extends LitElement {
     const col = this.position.col + 1;
     const row = this.position.row + 1;
 
-    if (col % this.blockSize === 0 && col !== this.size) {
+    if (col % this.blockSize === 0) {
       classNames += 'border-right ';
     }
-    if (row % this.blockSize === 0 && row !== this.size) {
+    if (row % this.blockSize === 0) {
       classNames += 'border-bottom';
+    }
+
+    if ((col - 1) % this.blockSize === 0 && col - 1 !== this.size) {
+      classNames += ' border-left ';
+    }
+    if ((row - 1) % this.blockSize === 0 && row - 1 !== this.size) {
+      classNames += ' border-top';
     }
 
     return classNames;
@@ -136,12 +151,15 @@ export class ValueBox extends LitElement {
   }
 
   addValue(e: InputEvent) {
-    const inputValue = e.data as string;
+    let inputValue = e.data;
+    if (inputValue === null) {
+      inputValue = ' ';
+    }
     const input = e.target as HTMLInputElement;
 
     input.selectionStart = 0;
 
-    if (inputValue && inputValue.match(/[1-9]/) === null) {
+    if (inputValue && inputValue.match(/[1-9\s]/) === null) {
       input.value = this.box.value.value;
       this.boxFocused(e);
       return;
@@ -151,7 +169,7 @@ export class ValueBox extends LitElement {
       return;
     }
 
-    input.value = e.data as string;
+    input.value = inputValue;
     this.boxFocused(e);
   }
 
@@ -167,7 +185,7 @@ export class ValueBox extends LitElement {
           .pencilMark=${this.box.value.pencilMarks}
         ></pencil-mark>
         <input
-          style="z-index: 2"
+          style="z-index: 1"
           @focus=${this.boxFocused}
           readonly
           class="sudoku-col fixed ${this.getClassNames()}"
@@ -180,7 +198,7 @@ export class ValueBox extends LitElement {
 
     return html`
       <pencil-mark
-        style="z-index: ${this.drawMode === DrawMode.Value ? '-1' : '2'}"
+        style="z-index: ${this.drawMode === DrawMode.Value ? '-1' : '1'}"
         .inlined=${this.box.inlined}
         .focused=${this.box.focused}
         .selected=${this.box.selected}
@@ -191,7 +209,7 @@ export class ValueBox extends LitElement {
       <input
         style="z-index: ${value.value === ' ' && this.drawMode === DrawMode.Note
           ? '-1'
-          : '2'}"
+          : '1'}"
         @focus=${this.boxFocused}
         @input=${this.addValue}
         class="sudoku-col"

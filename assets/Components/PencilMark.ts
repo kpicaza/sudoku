@@ -26,10 +26,12 @@ export class PencilMark extends LitElement {
       resize: none; /*remove the resize handle on the bottom right*/
     }
     .notes-input {
+      user-drag: none;
       display: inline;
-      height: 58px;
+      height: 57px;
       width: 60px;
       padding: 0;
+      padding-bottom: 1px;
       border: none;
       color: #005cbf;
       font-size: 16px;
@@ -58,12 +60,17 @@ export class PencilMark extends LitElement {
     .notes-input.focused {
       background: #b8daff;
     }
+    .notes-input.failed {
+      background: #f5c6cb;
+      color: #a71d2a;
+    }
   `;
 
   @property() box: Box = {
     value: {
       position: { row: 0, col: 0, block: 0 },
       value: ' ',
+      validValue: ' ',
       pencilMarks: [],
     },
     selected: false,
@@ -108,6 +115,7 @@ export class PencilMark extends LitElement {
 
     const value: Value = {
       value: ' ',
+      validValue: this.box.value.validValue,
       position: this.box.value.position,
       pencilMarks,
     };
@@ -127,7 +135,7 @@ export class PencilMark extends LitElement {
       inputValue += notes.value;
     }
 
-    return inputValue.split('').join('');
+    return inputValue.split('').sort().join('');
   }
 
   boxFocused() {
@@ -152,6 +160,13 @@ export class PencilMark extends LitElement {
 
     if (this.selected && !this.focused) {
       classNames = ' selected';
+    }
+
+    if (
+      this.box.value.value !== ' ' &&
+      this.box.value.validValue !== this.box.value.value
+    ) {
+      classNames += ' failed';
     }
 
     return classNames;

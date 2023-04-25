@@ -3,7 +3,7 @@ import { Grid } from '../Model/Grid';
 import { DrawMode } from '../Types/DrawMode';
 
 const { state, onChange } = createStore({
-  grid: Grid.fromPlainGrid([]),
+  grid: Grid.fromPlainGrid([], []),
   blockSize: 3,
   size: 9,
   drawMode: DrawMode.Value,

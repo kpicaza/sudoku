@@ -3,8 +3,10 @@
     <title>Evil Sudoku</title>
     <link rel="icon" type="image/x-icon" href="/favicon.png">
     <style>
-        .container {
-            width: 100%;
+        body {
+            display: block;
+            padding: 0;
+            margin: 0;
         }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -19,14 +21,11 @@
 
 </head>
 <body>
-<header>
-    <img src="/images/evil-sudoku-logo-90x90.png">
-    <h1>Evil Sudoku</h1>
-</header>
-
-<div class="container">
-    <sudoku-board raw="{{ grid|json_encode }}" block-size="{{ block_size }}"></sudoku-board>
-</div>
+    <sudoku-board
+            rawGrid="{{ grid|json_encode }}"
+            rawSolvedGrid="{{ solved_grid|json_encode }}"
+            block-size="{{ block_size }}"
+    ></sudoku-board>
 
 {% block javascripts %}
     {{ encore_entry_script_tags('app') }}

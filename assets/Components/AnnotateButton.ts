@@ -6,8 +6,12 @@ import { DrawMode } from '../Types/DrawMode';
 export class AnnotateButton extends LitElement {
   static styles = css`
     :host {
-      margin-left: auto;
-      margin-right: 0;
+      display: block;
+      margin: 15px;
+    }
+    mwc-button {
+      --mdc-theme-primary: #363636;
+      --mdc-theme-on-primary: white;
     }
   `;
 

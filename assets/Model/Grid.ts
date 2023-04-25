@@ -8,7 +8,10 @@ export class Grid {
     this.matrix = matrix;
   }
 
-  static fromPlainGrid(grid: Array<Array<string>>): Grid {
+  static fromPlainGrid(
+    grid: Array<Array<string>>,
+    solvedGrid: Array<Array<string>>
+  ): Grid {
     const matrix: Array<Array<Box>> = [];
     let rowIndex = 0;
     for (const row of grid) {
@@ -23,6 +26,7 @@ export class Grid {
               block: Grid.getBlockIndex(rowIndex, colIndex, 3),
             },
             value,
+            validValue: solvedGrid[rowIndex][colIndex],
             pencilMarks: [],
           },
           selected: false,
@@ -77,6 +81,7 @@ export class Grid {
       value: {
         position: prevBox.value.position,
         value: value.value,
+        validValue: prevBox.value.validValue,
         pencilMarks:
           prevBox.value.value !== value.value ? [] : value.pencilMarks,
       },

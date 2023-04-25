@@ -9,11 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment;
 
-class HomePageController
+final readonly class HomePageController
 {
     public function __construct(
-        private readonly SudokuPuzzles $sudokuPuzzles,
-        private readonly Environment $template,
+        private SudokuPuzzles $sudokuPuzzles,
+        private Environment $template,
     ) {
     }
 
@@ -25,8 +25,8 @@ class HomePageController
         return new Response($this->template->render('index.html.twig', [
             'block_size' => 3,
             'blank_spaces' => 51,
-            'grid' => $puzzle->initialGrid->matrix
-
+            'grid' => $puzzle->initialGrid->matrix,
+            'solved_grid' => $puzzle->solutionGrid->matrix,
         ]));
     }
 }

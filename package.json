@@ -4,6 +4,7 @@
     "@material/mwc-button": "^0.27.0",
     "@material/mwc-icon": "^0.27.0",
     "@material/mwc-icon-button": "^0.27.0",
+    "@material/mwc-top-app-bar": "^0.27.0",
     "@stencil/core": "^3.2.1",
     "@stencil/store": "^2.0.5",
     "lit": "^2.3.1"
